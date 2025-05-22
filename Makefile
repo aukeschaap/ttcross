@@ -25,7 +25,7 @@ MPOBJ   = $(foreach s,$(MPF),$(OBJDIR)/$(s).o)
 MAIN    = ising
 
 all: | $(BUILD) $(MODDIR) $(OBJDIR) $(BINDIR)
-all: $(BINDIR)/test_crs_ising.exe $(BINDIR)/test_qmc_ising.exe $(BINDIR)/test_mc_ising.exe
+all: $(BINDIR)/test_crs_ising.exe $(BINDIR)/test_qmc_ising.exe $(BINDIR)/test_mc_ising.exe $(BINDIR)/test_crs_stdnorm.exe
 
 $(BUILD) $(MODDIR) $(OBJDIR) $(BINDIR):
 	mkdir -p $@
