@@ -105,7 +105,6 @@ program main
     do i = 1, n_dimensions
         call dcopy(n_quad_points, par(n_quad_points+1), 1, qq%u(i)%p, 1)
     end do
-    call ones(qq)
 
     !-----------------------------------------------
     ! (Optional) rescaling to avoid underflow
@@ -162,14 +161,10 @@ double precision function integrand(n_dimensions, ind, n, par) result(f)
 
     ! Extract the actual integration nodes
     do i = 1, n_dimensions
-        x(i) = par(ind(i))  ! assumes nodes start at par(1)
+        x(i) = par(ind(i))
     end do
 
-    ! Your integrand goes here (e.g., Gaussian function)
-    f = exp(-sum(x**2))  ! Example: multivariate Gaussian
+    ! Multivariate Gaussian, which integrates to sqrt(pi) ^ n_dimensions
+    f = exp(-sum(x**2))
 
-    ! Multiply the corresponding quadrature weights
-    do i = 1, n_dimensions
-        f = f * par(n(i) + ind(i))
-    end do
 end function
