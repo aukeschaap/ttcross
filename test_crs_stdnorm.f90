@@ -13,10 +13,10 @@ program main
     integer :: i, j, n_dimensions, n_quad_points, max_rank, pivoting_strat
     integer :: info, nproc, me, adj
     integer(kind=8) :: neval
-    double precision :: t1, t2, tcrs, acc, val, tru
-    double precision, allocatable :: par(:)
+    double precision :: t1, t2, tcrs, acc, val, tru, a, b
+    double precision, allocatable :: par(:), tmp_nodes(:), tmp_weights(:)
     logical :: rescale
-    double precision, external :: dfunc_ising_discr
+    double precision, external :: integrand, dfunc_stdnorm
 
     !-----------------------------------------------
     ! Read input parameters
@@ -69,16 +69,30 @@ program main
 
     acc = 5 * epsilon(1.d0)
 
+
     !-----------------------------------------------
-    ! Allocate and configure quadrature nodes/weights
+    ! Allocate and configure quadrature nodes/weights on [a, b]
     !-----------------------------------------------
+    
+    ! Interval of integration
+    a = -10.d0
+    b = 10.d0
+
+    ! True value of the integral
+    ! tru = (b - a) ** n_dimensions
+    tru = sqrt(3.141592653589793238d0) ** n_dimensions
+
     allocate(par(2 * n_quad_points), stat=info)
     if (info /= 0) stop 'cannot allocate par'
 
-    call lgwt(n_quad_points, par(1), par(n_quad_points+1))     ! Legendre-Gauss quadrature nodes and weights on [-1, 1]
-    ! call dscal(n_quad_points, 0.5d0, par(n_quad_points+1), 1)  ! Scale weights to [0, 1]
-    ! forall(i=1:n_quad_points) par(i) = (par(i) + 1.d0) / 2     ! Shift nodes to [0, 1]
-    ! call dscal(n_quad_points, 1.d0 / sum(par(n_quad_points+1 : 2*n_quad_points)), par(n_quad_points+1), 1) ! Normalize weights
+    ! Compute Gauss-Legendre quadrature on [-1, 1]
+    call lgwt(n_quad_points, par(1), par(n_quad_points+1))
+
+    ! Map nodes to [a, b]
+    forall(i=1:n_quad_points) par(i) = 0.5d0 * ((b - a) * par(i) + (a + b))
+
+    ! Scale weights for [a, b]
+    call dscal(n_quad_points, 0.5d0 * (b - a), par(n_quad_points+1), 1)
 
     !-----------------------------------------------
     ! Prepare quadrature tensor
@@ -114,8 +128,7 @@ program main
     tt%r = 1
     call alloc(tt)
 
-    tru = 2 ** n_dimensions
-    call dtt_dmrgg(tt, dfunc_ising_discr, par, maxrank=max_rank, accuracy=acc, &
+    call dtt_dmrgg(tt, integrand, par, maxrank=max_rank, accuracy=acc, &
                    pivoting=pivoting_strat, neval=neval, quad=qq, tru=tru)
     t2 = timef()
     tcrs = t2 - t1
@@ -139,14 +152,21 @@ program main
 end program
 
 
-double precision function dfunc_ising_discr(n_dimensions, ind, n, par) result(f)
+double precision function integrand(n_dimensions, ind, n, par) result(f)
     implicit none
     integer, intent(in) :: n_dimensions
     integer, intent(in) :: ind(n_dimensions), n(n_dimensions)
     double precision, intent(inout), optional :: par(*)
     integer :: i
+    double precision :: x(n_dimensions)
 
-    f = 1.d0
+    ! Extract the actual integration nodes
+    do i = 1, n_dimensions
+        x(i) = par(ind(i))  ! assumes nodes start at par(1)
+    end do
+
+    ! Your integrand goes here (e.g., Gaussian function)
+    f = exp(-sum(x**2))  ! Example: multivariate Gaussian
 
     ! Multiply the corresponding quadrature weights
     do i = 1, n_dimensions
