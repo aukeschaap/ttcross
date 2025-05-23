@@ -15,7 +15,7 @@ program main
     integer :: info, nproc, me, adj
     integer(kind=8) :: neval
     double precision :: t1, t2, tcrs, acc, val, tru, a, b
-    double precision, allocatable :: par(:), tmp_nodes(:), tmp_weights(:)
+    double precision, allocatable :: par(:)
     logical :: rescale
     double precision, external :: integrand, dfunc_stdnorm
 
