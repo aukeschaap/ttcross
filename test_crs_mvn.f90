@@ -128,6 +128,8 @@ program main
     tt%r = 1
     call alloc(tt)
 
+    call mvn_init(n_dimensions, 0.d0, 1.d0)
+
     call dtt_dmrgg(tt, integrand, par, maxrank=max_rank, accuracy=acc, &
                    pivoting=pivoting_strat, neval=neval, quad=qq, tru=tru)
     t2 = timef()
@@ -162,12 +164,11 @@ double precision function integrand(n_dimensions, ind, mode_sizes, par) result(f
     integer :: i
     double precision :: x(n_dimensions)
 
-    ! Extract the actual integration nodes
+    ! Extract integration node
     do i = 1, n_dimensions
         x(i) = par(ind(i))
     end do
 
-    ! Multivariate Gaussian, which should integrate to sqrt(pi) ^ n_dimensions
-    f = mvn_pdf(x, n_dimensions, 0.d0, 1.d0)
-
+    f = mvn_pdf(x)
 end function
+
