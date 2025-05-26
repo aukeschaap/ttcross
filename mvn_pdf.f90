@@ -42,9 +42,23 @@ module mvn_pdf_mod
       end do
     end do
 
+    ! Print mean vector and covariance matrix if n < 10
+    if (n < 10) then
+      print *, 'Mean vector (mu):'
+      do i = 1, n
+        print '(F12.6)', mvn_data%mu(i)
+      end do
+
+      print *, 'Covariance matrix:'
+      do i = 1, n
+        print '(*(F12.6))', (cov(i,j), j = 1, n)
+      end do
+    end if
+
     ! Compute inverse and determinant
     call invert_and_determinant(cov, mvn_data%inv_cov, mvn_data%det_cov, n)
   end subroutine mvn_init
+
 
   function mvn_pdf(x) result(pdf)
     implicit none
