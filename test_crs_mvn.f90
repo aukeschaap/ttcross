@@ -75,12 +75,11 @@ program main
     ! Allocate and configure quadrature nodes/weights on [a, b]
     !-----------------------------------------------
     
-    ! Interval of integration
-    a = -10.d0
-    b = 10.d0
+    ! Interval of integration (according to cumulants with L = 10)
+    a = 0.525170
+    b = 8.525170
 
     ! True value of the integral
-    ! tru = (b - a) ** n_dimensions
     tru = 1
 
     allocate(par(2 * n_quad_points), stat=info)
