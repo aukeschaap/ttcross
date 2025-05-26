@@ -143,6 +143,12 @@ program main
     allocate(w_complex(n_quad_points), stat=info)
     if (info /= 0) stop 'cannot allocate w_complex'
 
+    ! Allocate quadrature tensor
+    qq%l = 1
+    qq%m = n_dimensions
+    qq%n = n_quad_points
+    qq%r = 1
+    call alloc(qq)
 
     do k = 0, 31
         omega = k * pi / (300.d0 - 0.d0)
@@ -152,13 +158,6 @@ program main
             w_complex(p) = exp(im * omega * exp(par(p)) / dble(n_dimensions))
         end do
 
-
-        qq%l = 1
-        qq%m = n_dimensions
-        qq%n = n_quad_points
-        qq%r = 1
-        call alloc(qq)
-        
         do i = 1, n_dimensions
             forall(p = 1:n_quad_points)
                 qq%u(i)%p(1, p, 1) = dcmplx(par(n_quad_points + p), 0.d0) * w_complex(p)
