@@ -159,7 +159,7 @@ program main
     !-----------------------------------------------
     cval = ztt_quad(tt_z, qq)
     if (me == 0) then
-        write(*,'(a,e50.40)') 'computed value:', cval
+        write(*,'(a,2e50.40)') 'computed value:', real(cval)
         write(*,'(a,e50.40)') 'analytic value:', tru
         ! write(*,'(a,f7.2)') 'correct digits:', -dlog(dabs(1.d0 - val/tru)) / dlog(10.d0)
         write(*,'(a,f7.2)') 'correct digits:', -dlog(zabs((1.d0, 0.d0) - cval/tru)) / dlog(10.d0)
