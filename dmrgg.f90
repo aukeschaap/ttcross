@@ -1413,4 +1413,112 @@ contains
         if (me == 0) val = prev(1,1)
         deallocate(prev)
     end function
+
+
+    double complex function ztt_quad(arg, quad, mybonds) result(val)
+        use iso_c_binding
+        implicit none
+        include 'mpif.h'
+
+        type(ztt), intent(in), target :: arg
+        type(ztt), intent(in), optional :: quad
+        integer, intent(in), optional, target :: mybonds(0:)
+
+        character(len=*), parameter :: subnam = 'ztt_quad'
+        integer, parameter :: tagsize = 11, tagdata = 12
+
+        integer, pointer :: r(:), n(:), own(:)
+        integer :: me, her, him, nproc, info, stat(MPI_STATUS_SIZE), typed
+        integer :: mym, myn, herm, hern, first, last, l, m, p, q, i, j, k, mn(2)
+        double complex, pointer :: prev(:,:), curr(:,:), next(:,:)
+
+        double complex :: zero, one
+        parameter(zero = (0.d0, 0.d0), one = (1.d0, 0.d0))
+
+        val = zero
+
+        select case (storage_size((0.d0,0.d0)))
+            case (64);  typed = MPI_COMPLEX8
+            case (128); typed = MPI_COMPLEX16
+            case default
+                if (me == 0) write(*,'(a,i5,a)') subnam, ': unknown complex size: ', storage_size((0.d0,0.d0)), ' guessing 128'
+                typed = MPI_COMPLEX16
+        end select
+
+        call mpi_comm_size(MPI_COMM_WORLD, nproc, info)
+        call mpi_comm_rank(MPI_COMM_WORLD, me, info)
+
+        l = arg%l
+        m = arg%m
+        r => arg%r
+        n => arg%n
+
+        if (present(mybonds)) then
+            own => mybonds
+        else
+            allocate(own(0:nproc), stat=info)
+            call share(l, m-1, own)
+        end if
+
+        first = own(me)
+        last = own(me + 1) - 1
+        if (me == nproc - 1) last = m
+
+        do p = first, last
+            allocate(curr(r(p-1), r(p)))
+            if (present(quad)) then
+                do k = 1, r(p)
+                    call zgemv('n', r(p-1), n(p), one, arg%u(p)%p(1,1,k), r(p-1), quad%u(p)%p, 1, zero, curr(1,k), 1)
+                end do
+            else
+                forall(i = 1:r(p-1), k = 1:r(p))
+                    curr(i,k) = sum(arg%u(p)%p(i,:,k))
+                end forall
+            end if
+
+            if (p == first) then
+                prev => curr
+                nullify(curr)
+            else
+                allocate(next(r(first-1), r(p)))
+                call zgemm('n', 'n', r(first-1), r(p), r(p-1), one, prev, r(first-1), curr, r(p-1), zero, next, r(first-1))
+                deallocate(prev, curr)
+                prev => next
+                nullify(next)
+            end if
+        end do
+
+        mym = r(first - 1)
+        myn = r(last)
+
+        q = 1
+        do while (q < nproc)
+            if (mod(me, 2*q) == 0) then
+                her = me + q
+                if (her < nproc) then
+                    call mpi_recv(mn, 2, MPI_INTEGER, her, tagsize, MPI_COMM_WORLD, stat, info)
+                    herm = mn(1)
+                    hern = mn(2)
+                    allocate(curr(herm, hern), next(mym, hern))
+                    call mpi_recv(curr, herm * hern, typed, her, tagdata, MPI_COMM_WORLD, stat, info)
+                    call zgemm('n', 'n', mym, hern, myn, one, prev, mym, curr, herm, zero, next, mym)
+                    deallocate(prev, curr)
+                    prev => next
+                    nullify(next)
+                    myn = hern
+                end if
+            else if (mod(me, q) == 0) then
+                him = me - q
+                mn(1) = mym
+                mn(2) = myn
+                call mpi_send(mn, 2, MPI_INTEGER, him, tagsize, MPI_COMM_WORLD, info)
+                call mpi_send(prev, mym * myn, typed, him, tagdata, MPI_COMM_WORLD, info)
+            end if
+            q = q * 2
+        end do
+
+        call mpi_barrier(MPI_COMM_WORLD, info)
+        if (me == 0) val = prev(1,1)
+        deallocate(prev)
+    end function
 end module
