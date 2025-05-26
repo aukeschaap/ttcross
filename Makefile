@@ -16,7 +16,7 @@ MODDIR  = $(BUILD)/mod
 OBJDIR  = $(BUILD)/obj
 BINDIR  = $(BUILD)/bin
 
-SRC     = zero nan trans default timef say rnd ptype ort lr mat quad tt ttind ttio dmrgg qmc mc mvn_pdf
+SRC     = zero nan trans default timef say rnd ptype ort lr mat quad tt ttind ttio dmrgg qmc mc mvn_pdf cos_approx
 MPF     = mpfuna mpfunf mpfung1 mpinterface mpmodule mpblas ttmp dmrggmp
 OBJ     = $(foreach s,$(SRC),$(OBJDIR)/$(s).o)
 MPOBJ   = $(foreach s,$(MPF),$(OBJDIR)/$(s).o)
@@ -32,7 +32,8 @@ all: \
 	$(BINDIR)/test_crs_stdnorm.exe  \
 	$(BINDIR)/test_crs_mvn.exe  \
 	$(BINDIR)/test_crs_mvn_complex.exe \
-	$(BINDIR)/test_crs_chf.exe
+	$(BINDIR)/test_crs_chf.exe \
+	$(BINDIR)/test_crs_pdf.exe
 
 $(BUILD) $(MODDIR) $(OBJDIR) $(BINDIR):
 	mkdir -p $@
