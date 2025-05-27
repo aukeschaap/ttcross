@@ -194,7 +194,7 @@ program main
     ! ------------------------------------------------
 
     ! Output results to file
-    filename = 'cos_pdf_output.txt'
+    filename = './out/tt-cross-pdf.txt'
     unit_out = 99  ! Choose a unit number unlikely to conflict
 
     open(unit=unit_out, file=filename, status='replace', action='write', iostat=ios)
@@ -203,14 +203,23 @@ program main
     else
         if (me == 0) write(*,*) 'Writing PDF output to: ', trim(filename)
         do i = 1, n_pts
-            write(unit_out, '(f12.6,1x,e16.8)') xs(i), pdf_vals(i)
+            write(unit_out, '(es25.17,1x,es25.17)') xs(i), pdf_vals(i)
         end do
         close(unit_out)
     end if
 
+
+    ! ------------------------------------------------
+    ! Plot in Matplotlib
+    ! ------------------------------------------------
+
+    if (me == 0 .and. n_dimensions == 4) then
+        write(*,*) 'Plotting results with Matplotlib...'
+        call system(".venv/bin/python ./plot-ttcross-data.py")
+    end if
+
+
     deallocate(xs, pdf_vals)
-
-
     call dealloc(tt)
     call dealloc(tt_z)
     call dealloc(qq)
