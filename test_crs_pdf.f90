@@ -187,7 +187,7 @@ program main
     end do
 
     ! Evaluate COS approximation at all xs
-    call cos_approximate_array(xs, n_pts, phis, 0.d0, 300.d0, pdf_vals)
+    call cos_approximate_array(xs, phis, lower_bound=0.d0, upper_bound=300.d0, n_terms=32, pdf_vals=pdf_vals)
 
     ! ------------------------------------------------
     ! Write results to file
