@@ -290,9 +290,9 @@ contains
         ! report initial results
         if (me == 0) then
             t2 = timef()
-            write(str, '(i3,a2,a,f5.1,a,2f6.3,a)') &
+            write(str, '(i3,a2,a,f5.1,a,e9.3,a,i10)') &
                 0, '::', ' rank', erank(arg), &
-                ' log10t,n ', dlog(t2 - t1) / dlog(10.d0), dlog(dble(nevalall)) / dlog(10.d0), ' ...  .......'
+                ' time: ', t2 - t1, ' n_evals: ', nevalall
             if (present(quad)) then
                 write(stmp, '(a,' // sfmt // ')') ' val ', val
                 str = trim(str) // trim(stmp)
@@ -968,9 +968,9 @@ contains
 
             ! REPORT current progress
             t2 = timef()
-            if (me == 0) write(str, '(i3,a2,a,f5.1,a,2f6.3)') &
+            if (me == 0) write(str, '(i3,a2,a,f5.1,a,e9.3,a,i10)') &
                 it, sdir, ' rank', erank(arg), &
-                ' log10t,n ', dlog(t2 - t1) / dlog(10.d0), dlog(dble(nevalall)) / dlog(10.d0)
+                ' time: ', t2 - t1, ' n_evals: ', nevalall
 
             if (present(quad)) then
                 ttqq%l = l
