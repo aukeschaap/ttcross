@@ -213,11 +213,15 @@ program main
     ! Plot in Matplotlib
     ! ------------------------------------------------
 
-    if (me == 0 .and. n_dimensions == 4) then
-        write(*,*) 'Plotting results with Matplotlib...'
-        call system(".venv/bin/python ./plot-ttcross-data.py")
+    if (me == 0) then
+        if (n_dimensions == 4) then
+            write(*,*) 'Plotting TT-cross and TT-SVD results...'
+            call system(".venv/bin/python ./plot-ttcross-and-ttsvd-data.py")
+        else
+            write(*,*) 'Plotting TT-cross results...'
+            call system(".venv/bin/python ./plot-ttcross-data.py")
+        end if
     end if
-
 
     deallocate(xs, pdf_vals)
     call dealloc(tt)
