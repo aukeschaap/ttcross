@@ -3,3 +3,8 @@
 *.mod
 *.exe
 main
+
+# Directories
+build
+data
+out
