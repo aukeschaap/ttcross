@@ -11,12 +11,17 @@ BLASLIB = -llapack -lblas
 MPFLIB  = -lmpfr
 MPD     = ./mpfun-mpfr-v08
 
+# HDF5 support
+HDF5_INC = -I/usr/include/hdf5/serial
+HDF5_LIB = -L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5_fortran -lhdf5
+
+
 BUILD   = build
 MODDIR  = $(BUILD)/mod
 OBJDIR  = $(BUILD)/obj
 BINDIR  = $(BUILD)/bin
 
-SRC     = zero nan trans default timef say rnd ptype ort lr mat quad tt ttind ttio dmrgg qmc mc mvn_pdf cos_approx
+SRC     = zero nan trans default timef say rnd ptype ort lr mat quad tt ttind ttio dmrgg qmc mc mvn_pdf cos_approx utils
 MPF     = mpfuna mpfunf mpfung1 mpinterface mpmodule mpblas ttmp dmrggmp
 OBJ     = $(foreach s,$(SRC),$(OBJDIR)/$(s).o)
 MPOBJ   = $(foreach s,$(MPF),$(OBJDIR)/$(s).o)
@@ -33,19 +38,20 @@ all: \
 	$(BINDIR)/test_crs_mvn.exe  \
 	$(BINDIR)/test_crs_mvn_complex.exe \
 	$(BINDIR)/test_crs_chf.exe \
-	$(BINDIR)/test_crs_pdf.exe
+	$(BINDIR)/test_crs_pdf.exe \
+	$(BINDIR)/test_crs_store.exe
 
 $(BUILD) $(MODDIR) $(OBJDIR) $(BINDIR):
 	mkdir -p $@
 
 $(OBJDIR)/%.o: %.f90
-	$(FC) $(OPT) -J$(MODDIR) -c $< -o $@
+	$(FC) $(OPT) $(HDF5_INC) -J$(MODDIR) -c $< -o $@
 
 $(OBJDIR)/%.o: %.f
-	$(FC) $(OPT) -J$(MODDIR) -c $< -o $@
+	$(FC) $(OPT) $(HDF5_INC) -J$(MODDIR) -c $< -o $@
 
 $(OBJDIR)/%.o: %.F90
-	$(FC) $(OPT) -J$(MODDIR) -c $< -o $@
+	$(FC) $(OPT) $(HDF5_INC) -J$(MODDIR) -c $< -o $@
 
 $(OBJDIR)/%.o: %.c
 	$(CC) $(OPT) -c $< -o $@
@@ -79,7 +85,7 @@ $(BINDIR)/test_mpf_ising.exe: $(OBJ) $(MPOBJ) $(OBJDIR)/test_mpf_ising.o
 	$(LDR) $(OPT) $^ -o $@ $(BLASLIB) $(MPFLIB)
 
 $(BINDIR)/%.exe: $(OBJ) $(OBJDIR)/%.o
-	$(LDR) $(OPT) $^ -o $@ $(BLASLIB)
+	$(LDR) $(OPT) $^ -o $@ $(BLASLIB) $(HDF5_LIB)
 
 clean:
 	rm -rf $(BUILD)
