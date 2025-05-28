@@ -20,6 +20,7 @@ BUILD   = build
 MODDIR  = $(BUILD)/mod
 OBJDIR  = $(BUILD)/obj
 BINDIR  = $(BUILD)/bin
+LIBDIR  = lib
 
 SRC     = zero nan trans default timef say rnd ptype ort lr mat quad tt ttind ttio dmrgg mvn_pdf cos_approx utils
 MPF     = mpfuna mpfunf mpfung1 mpinterface mpmodule mpblas ttmp dmrggmp
@@ -45,13 +46,16 @@ $(BUILD) $(MODDIR) $(OBJDIR) $(BINDIR):
 $(OBJDIR)/%.o: %.f90
 	$(FC) $(OPT) $(HDF5_INC) -J$(MODDIR) -c $< -o $@
 
-$(OBJDIR)/%.o: %.f
+$(OBJDIR)/%.o: $(LIBDIR)/%.f90
 	$(FC) $(OPT) $(HDF5_INC) -J$(MODDIR) -c $< -o $@
 
-$(OBJDIR)/%.o: %.F90
+$(OBJDIR)/%.o: $(LIBDIR)/%.f
 	$(FC) $(OPT) $(HDF5_INC) -J$(MODDIR) -c $< -o $@
 
-$(OBJDIR)/%.o: %.c
+$(OBJDIR)/%.o: $(LIBDIR)/%.F90
+	$(FC) $(OPT) $(HDF5_INC) -J$(MODDIR) -c $< -o $@
+
+$(OBJDIR)/%.o: $(LIBDIR)/%.c
 	$(CC) $(OPT) -c $< -o $@
 
 # MPFUN object rules
@@ -70,17 +74,8 @@ $(OBJDIR)/mpmodule.o: $(MPD)/mpmodule.f90
 $(OBJDIR)/mpinterface.o: $(MPD)/mpinterface.c
 	$(FC) $(OPT) -c $< $(MPFLIB) -o $@
 
-$(OBJDIR)/dmrgg.o: dmrgg.f90
+$(OBJDIR)/dmrgg.o: $(LIBDIR)/dmrgg.f90
 	$(FC) $(OPT) -fallow-argument-mismatch -J$(MODDIR) -c $< -o $@
-
-$(OBJDIR)/qmc.o: qmc.f90
-	$(FC) $(OPT) -fallow-argument-mismatch -J$(MODDIR) -c $< -o $@
-
-$(OBJDIR)/mc.o: mc.f90
-	$(FC) $(OPT) -fallow-argument-mismatch -J$(MODDIR) -c $< -o $@
-
-$(BINDIR)/test_mpf_ising.exe: $(OBJ) $(MPOBJ) $(OBJDIR)/test_mpf_ising.o
-	$(LDR) $(OPT) $^ -o $@ $(BLASLIB) $(MPFLIB)
 
 $(BINDIR)/%.exe: $(OBJ) $(OBJDIR)/%.o
 	$(LDR) $(OPT) $^ -o $@ $(BLASLIB) $(HDF5_LIB)
