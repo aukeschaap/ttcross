@@ -141,7 +141,7 @@ program main
     end if
 
     ! Initialize coefficients for the Gaussian distribution
-    call init_coefficients(n_dimensions, mean, cov, lower=0.525170d0, upper=8.525170d0)
+    call init_coefficients(n_dimensions, mean, cov, lower=0.525170185988090843d0, upper=8.52517018598809173d0)
 
     !-----------------------------------------------
     ! Allocate and configure quadrature nodes/weights on [a, b]
@@ -152,8 +152,8 @@ program main
     end if
     
     ! Interval of integration (according to cumulants with L = 10)
-    a = 0.525170
-    b = 8.525170
+    a = 0.525170185988090843d0
+    b = 8.52517018598809173d0
 
     allocate(par(2 * n_quad_points), stat=info)
     if (info /= 0) stop 'cannot allocate par'
@@ -190,103 +190,10 @@ program main
 
     if (me == 0) write(*,'(a,i12,a,e12.4,a)') '...with', neval, ' evaluations completed in ', tcrs, ' sec.'
 
-    call save_dtt_to_hdf5(tt, "tensor_train.h5")
+    ! Save the TT tensor to HDF5
+    call save_dtt_to_hdf5(tt, "out/cos-coeff-tt-4-32-10-0.h5")
 
-    ! Convert tt from dtt to ztt
-    tt_z = tt
-
-
-    !-----------------------------------------------
-    ! Build and evaluate the quadrature tensor
-    !-----------------------------------------------
-
-    if (me == 0) then
-        write(*,'(3x,a)') 'Calculating phis...'
-    end if
-
-    ! Compute additional complex weights for quadrature
-    allocate(w_complex(n_quad_points), stat=info)
-    if (info /= 0) stop 'cannot allocate w_complex'
-
-    ! Allocate quadrature tensor
-    qq%l = 1
-    qq%m = n_dimensions
-    qq%n = n_quad_points
-    qq%r = 1
-    call alloc(qq)
-
-    do k = 0, 31
-        omega = k * pi / (300.d0 - 0.d0)
-        im = (0.d0, 1.d0)
-
-        do p = 1, n_quad_points
-            w_complex(p) = exp(im * omega * exp(par(p)) / dble(n_dimensions))
-        end do
-
-        do i = 1, n_dimensions
-            forall(p = 1:n_quad_points)
-                qq%u(i)%p(1, p, 1) = dcmplx(par(n_quad_points + p), 0.d0) * w_complex(p)
-            end forall
-        end do
-
-        phis(k+1) = ztt_quad(tt_z, qq)
-    end do
-
-    if (me == 0) write(*,'(3x,a)') 'Phi values computed.'
-
-    !----------------------------------------------------
-    ! Evaluate the PDF on a linspace and write to file
-    !----------------------------------------------------
-
-    n_pts = 200
-    allocate(xs(n_pts), pdf_vals(n_pts))
-
-    ! Create linspace from 0 to 300
-    do i = 1, n_pts
-        xs(i) = 0.d0 + (300.d0 - 0.d0) * (i - 1) / (n_pts - 1)
-    end do
-
-    ! Evaluate COS approximation at all xs
-    call cos_approximate_array(xs, phis, lower_bound=0.d0, upper_bound=300.d0, n_terms=32, pdf_vals=pdf_vals)
-
-    ! ------------------------------------------------
-    ! Write results to file
-    ! ------------------------------------------------
-
-    ! Output results to file
-    filename = './out/tt-cross-pdf.txt'
-    unit_out = 99  ! Choose a unit number unlikely to conflict
-
-    open(unit=unit_out, file=filename, status='replace', action='write', iostat=ios)
-    if (ios /= 0) then
-        if (me == 0) write(*,*) 'Error opening file: ', filename
-    else
-        if (me == 0) write(*,*) 'Writing PDF output to: ', trim(filename)
-        do i = 1, n_pts
-            write(unit_out, '(es25.17,1x,es25.17)') xs(i), pdf_vals(i)
-        end do
-        close(unit_out)
-    end if
-
-
-    ! ------------------------------------------------
-    ! Plot in Matplotlib
-    ! ------------------------------------------------
-
-    if (me == 0) then
-        if (n_dimensions == 4) then
-            write(*,*) 'Plotting TT-cross and TT-SVD results...'
-            call system(".venv/bin/python ./plot-ttcross-and-ttsvd-data.py")
-        else
-            write(*,*) 'Plotting TT-cross results...'
-            call system(".venv/bin/python ./plot-ttcross-data.py")
-        end if
-    end if
-
-    deallocate(xs, pdf_vals)
     call dealloc(tt)
-    call dealloc(tt_z)
-    call dealloc(qq)
     call mpi_finalize(info)
     if (info /= 0) stop 'mpi: finalize fail'
 end program
