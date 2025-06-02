@@ -47,8 +47,17 @@ SRC = zero nan trans default timef say rnd ptype ort lr mat quad \
 MPF = mpfuna mpfunf mpfung1 mpinterface mpmodule mpblas ttmp dmrggmp
 
 # Test programs (in root dir)
-TESTS = test_crs_ising test_crs_stdnorm test_crs_mvn test_crs_mvn_complex \
-        test_crs_chf test_crs_pdf test_crs_store test_s_vectors test_crs_coscoeff
+TESTS = test_crs_ising \
+		test_crs_stdnorm \
+		test_crs_mvn \
+		test_crs_mvn_complex \
+        test_crs_chf \
+		test_crs_pdf \
+		test_crs_store \
+		test_s_vectors \
+		test_crs_coscoeff \
+		test_print_cos_coeff \
+		test_chf_equal
 
 # Object file expansions
 OBJ     = $(foreach s,$(SRC),$(OBJDIR)/$(s).o)
