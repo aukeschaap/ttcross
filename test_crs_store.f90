@@ -133,7 +133,7 @@ program main
 
     if (me == 0) write(*,'(a,i12,a,e12.4,a)') '...with', neval, ' evaluations completed in ', tcrs, ' sec.'
 
-    call save_dtt_to_hdf5(tt, "tensor_train.h5")
+    call save_dtt_to_hdf5(tt, "out/tensor_train.h5")
 
     ! Convert tt from dtt to ztt
     tt_z = tt
