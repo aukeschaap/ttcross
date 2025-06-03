@@ -27,7 +27,7 @@ program main
     double precision :: x
     integer :: n_pts
     double precision, allocatable :: xs(:), pdf_vals(:)
-    character(len=100) :: filename
+    character(len=200) :: output_file_name
     integer :: ios, unit_out
 
     !-----------------------------------------------
@@ -191,7 +191,8 @@ program main
     if (me == 0) write(*,'(a,i12,a,e12.4,a)') '...with', neval, ' evaluations completed in ', tcrs, ' sec.'
 
     ! Save the TT tensor to HDF5
-    call save_dtt_to_hdf5(tt, "out/cos-coeff-tt-4-32-10-0.h5")
+    write(output_file_name, '(A,I0,A,I0,A,I0,A,F3.1,A)') './out/coeff-tt-', n_dimensions, '-', n_quad_points, '-', 10, '-', corr, '.h5'
+    call save_dtt_to_hdf5(tt, output_file_name)
 
     call dealloc(tt)
     call mpi_finalize(info)
